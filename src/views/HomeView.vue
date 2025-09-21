@@ -1,20 +1,27 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import ShortUniqueId from 'short-unique-id'
-// We will create the supabase client next
-// import { supabase } from '../lib/supabaseClient' 
+// *** STEP 1: Make sure supabase is imported ***
+import { supabase } from '../lib/supabaseClient'
 
-// Set up the router to navigate between pages
 const router = useRouter()
-// Set up the ID generator
 const uid = new ShortUniqueId({ length: 8 })
 
 async function createNewBoard() {
-  // 1. Generate a new, unique ID
   const boardId = uid.rnd()
 
-  // 2. Navigate to the new board's page
-  router.push({ name: 'board', params: { id: boardId } })
+  // *** STEP 2: The FIX is here. This code inserts a new row into the database. ***
+  const { error } = await supabase
+    .from('clips')
+    .insert({ id: boardId, content: '// Welcome to your new board!' })
+
+  if (error) {
+    alert('Error creating board. Please try again.')
+    console.error(error)
+  } else {
+    // Only navigate if the database entry was created successfully
+    router.push({ name: 'board', params: { id: boardId } })
+  }
 }
 </script>
 
